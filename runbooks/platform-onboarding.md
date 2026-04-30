@@ -76,7 +76,7 @@ If the subdomain is operator-only, add a Zero Trust Application policy
 
 ---
 
-## Step 4 — Deploy the snippet and reload Caddy
+## Step 4 — Deploy the snippet and restart Caddy
 
 ```bash
 # From dev machine:
@@ -84,16 +84,24 @@ git add caddy/snippets/<app-name>.caddy
 git commit -m "feat: add <app-name> Caddy snippet"
 git push
 
-# On the box:
-ssh ubuntu@<box> 'cd ~/infra && git pull && docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile'
+# Then deploy:
+just deploy-gateway
+# (equivalent to: ssh ubuntu@<box> 'cd ~/infra && git pull && docker compose up -d && docker compose restart caddy')
 ```
+
+**Important — restart, not reload.** `caddy reload` silently no-ops in
+this environment (the new config does not take effect; the site keeps
+serving the previous version with no error). Production deploys must
+use `docker compose restart caddy`. See `docs/2026-04-30-foundation.md`
+decision 7 and `albear-t/docs/2026-04-27-static-asset-architecture-execution-notes.md`
+lines 23-31 for the original observation.
 
 ---
 
 ## Checklist
 
 - [ ] `caddy/snippets/<app-name>.caddy` added and committed
-- [ ] Caddy config validates: `docker run --rm -v $PWD/caddy:/caddy caddy:alpine caddy validate --config /caddy/Caddyfile.prod`
+- [ ] Caddy config validates: `just validate` (syntax-only check via `caddy adapt`; full validation runs on the box where certs are present)
 - [ ] Firewall updated if app uses a new port
 - [ ] DNS A record added in Cloudflare
 - [ ] Zero Trust policy added if operator-only

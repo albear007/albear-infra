@@ -35,15 +35,23 @@ runbooks/
 ## Day-to-day
 
 ```bash
-# Reload Caddy config on the box (after editing a snippet)
-ssh ubuntu@<box> 'cd ~/infra && docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile'
+# After editing a Caddy snippet (most common):
+just deploy-gateway      # ssh → git pull → docker compose up -d → restart caddy
 
-# Update the IP allowlist for JBAgent
-# 1. Edit firewall/allowed-ips
-# 2. Run update-firewall.sh on the box, or copy and run:
-scp firewall/update-firewall.sh ubuntu@<box>:/tmp/
-ssh ubuntu@<box> 'bash /tmp/update-firewall.sh'
+# After editing firewall/allowed-ips:
+just update-firewall     # scp the file and rerun update-firewall.sh on the box
+
+# After rotating TLS certs (CERT_LOCAL_PATH in .env):
+just refresh-certs
+
+# Validate Caddyfile locally before pushing:
+just validate
 ```
+
+Caddy must be **restarted**, not reloaded — reload silently no-ops in
+this environment. The recipes above do the right thing; if you're
+running SSH commands manually, use `docker compose restart caddy`. See
+`docs/2026-04-30-foundation.md` decision 7.
 
 ## Secrets
 

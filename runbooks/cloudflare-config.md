@@ -68,5 +68,8 @@ None currently active.
   `telegram.albeart.xyz`. That subdomain should have no Access policy.
 - **Cert renewal:** The Cloudflare Origin CA cert is valid for 15 years
   from issuance. When it expires, generate a new one in the dashboard
-  (SSL/TLS → Origin Server → Create Certificate) and replace the files in
-  `~/infra/certs/` on the box, then `docker compose exec caddy caddy reload`.
+  (SSL/TLS → Origin Server → Create Certificate), drop the new
+  `cert.pem` and `key.pem` into `$CERT_LOCAL_PATH` (set in `.env`), and
+  run `just refresh-certs`. (`caddy reload` silently no-ops in this
+  environment; the recipe restarts Caddy. See
+  `docs/2026-04-30-foundation.md` decision 7.)

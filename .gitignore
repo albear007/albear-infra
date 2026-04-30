@@ -3,3 +3,6 @@ certs/
 
 # IP allowlist — contains personal/client IPs, not committed
 firewall/allowed-ips
+
+# Deployment secrets (BOX_HOST, SSH_KEY, CERT_LOCAL_PATH) — see .env.example
+.env
