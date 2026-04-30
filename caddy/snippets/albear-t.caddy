@@ -1,0 +1,33 @@
+albeart.xyz, www.albeart.xyz {
+    encode zstd gzip
+
+    # Bundled assets — Vite content-hashed, immutable
+    @assets path /assets/*
+    handle @assets {
+        root * /srv/dist
+        header Cache-Control "public, max-age=31536000, immutable"
+        file_server
+    }
+
+    # Identity files — short cache so fixes propagate in 5 min
+    @identity path /favicon.* /apple-touch-icon.* /robots.txt /og-image.* /manifest.webmanifest /favicon-*.png /web-app-manifest-*.png
+    handle @identity {
+        root * /srv/dist
+        header Cache-Control "public, max-age=300, must-revalidate"
+        file_server
+    }
+
+    # User content — out-of-band uploads (resume, future media)
+    @user_content path /static/*
+    handle @user_content {
+        root * /srv
+        header Cache-Control "public, max-age=300, must-revalidate"
+        file_server
+    }
+
+    # Legacy: keep old /resume.pdf URL working
+    redir /resume.pdf /static/resume.pdf 301
+
+    # SPA shell + /api/* → backend
+    reverse_proxy host.docker.internal:8080
+}

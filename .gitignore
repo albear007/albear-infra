@@ -1,0 +1,5 @@
+# TLS certificates — sync out of band via scp
+certs/
+
+# IP allowlist — contains personal/client IPs, not committed
+firewall/allowed-ips

@@ -1,0 +1,28 @@
+name: albear-infra
+
+services:
+  caddy:
+    image: caddy:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"  # HTTP/3
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./caddy/Caddyfile.prod:/etc/caddy/Caddyfile:ro
+      - ./certs:/etc/caddy/certs:ro
+      - /home/ubuntu/albear-t/static:/srv/static:ro
+      - /home/ubuntu/albear-t/dist:/srv/dist:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:2019/config/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  caddy_data:
+  caddy_config:
