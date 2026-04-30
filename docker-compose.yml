@@ -21,11 +21,11 @@ services:
       - caddy_config:/config
     restart: unless-stopped
     healthcheck:
-      # Hit the public HTTP listener — Caddy's :80 always responds (HTTP→HTTPS
-      # redirect for configured sites). The admin endpoint is bound to
-      # localhost-only inside the container in a way busybox wget can't always
-      # reach, so testing the public port is more reliable.
-      test: ["CMD-SHELL", "wget -qO- --tries=1 --spider http://127.0.0.1:80/ || exit 1"]
+      # Verify Caddy is listening on :80. The admin endpoint on localhost:2019
+      # is unreachable from busybox tools in this image (default binding
+      # behavior); TCP probe of the public port confirms Caddy is up without
+      # tripping on HTTPS redirect / cert chain issues that wget --spider hits.
+      test: ["CMD", "nc", "-z", "-w", "3", "127.0.0.1", "80"]
       interval: 30s
       timeout: 5s
       retries: 3
