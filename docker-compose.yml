@@ -10,7 +10,10 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
+      # Caddyfile + snippets/ — the Caddyfile.prod uses `import snippets/*.caddy`
+      # so the whole caddy/ tree must be mounted (not just the top-level file).
       - ./caddy/Caddyfile.prod:/etc/caddy/Caddyfile:ro
+      - ./caddy/snippets:/etc/caddy/snippets:ro
       - ./certs:/etc/caddy/certs:ro
       - /home/ubuntu/albear-t/static:/srv/static:ro
       - /home/ubuntu/albear-t/dist:/srv/dist:ro
