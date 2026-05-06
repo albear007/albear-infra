@@ -105,5 +105,5 @@ lines 23-31 for the original observation.
 - [ ] Firewall updated if app uses a new port
 - [ ] DNS A record added in Cloudflare
 - [ ] Zero Trust policy added if operator-only
-- [ ] Caddy reloaded on the box
+- [ ] Caddy **restarted** on the box (not reloaded — see "Important" note above and `docs/2026-04-30-foundation.md` decision 7)
 - [ ] End-to-end test: `curl -I https://<app-domain>.albeart.xyz`
