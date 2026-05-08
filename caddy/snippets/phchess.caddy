@@ -1,0 +1,5 @@
+chess.albeart.xyz {
+    tls /etc/caddy/certs/cert.pem /etc/caddy/certs/key.pem
+    encode zstd gzip
+    reverse_proxy host.docker.internal:8001
+}
