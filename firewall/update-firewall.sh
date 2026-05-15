@@ -9,6 +9,16 @@
 #
 # The script is idempotent. It flushes JBAGENT_ACCESS before repopulating it,
 # and saves rules via netfilter-persistent so they survive reboots.
+#
+# Scope. This script intentionally manages port 8000 (JBAgent) only.
+# Other host ports on this box are public-by-design and rely on
+# app-layer auth, NOT on iptables:
+#   - Port 8001 (phchess): per-TD JWT auth in the app.
+#   - Port 8080 (albear-t backend): Docker-internal; not exposed externally.
+# If you add an `iptables -I INPUT 1 -p tcp --dport 8001 ...` block here,
+# you will silently break the chess.albeart.xyz user-facing surface.
+# See runbooks/platform-onboarding.md "Step 2 — Update the firewall"
+# for the decision rule on when an app gets a chain.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -54,12 +54,22 @@ If the new app listens on a new host port and needs Docker bridge access:
 
 The `JBAGENT_ACCESS` chain manages port 8000. For new ports, add a
 new rule in `update-firewall.sh`, or add a bespoke chain by analogy.
-The key invariant: no port should be open to the internet that isn't
-explicitly gated.
+The key invariant: every port open to the internet must have an
+intentional auth posture — gated by an iptables chain, or by Cloudflare
+Access, or by app-layer auth (HMAC, JWT, etc.).
+
+**Decision rule for adding a chain.** Operator-only apps (e.g. JBAgent's
+internal UI) get an iptables allowlist chain *in addition* to Cloudflare
+Access — defense in depth. Public apps (e.g. phchess, albear-t) do
+**not** need an allowlist chain; auth is handled at Cloudflare's edge
+(if any) and/or at the app layer (JWT/HMAC/etc.). Adding an unneeded
+chain to a public app silently turns it into an operator-only one and
+breaks the user-facing surface.
 
 Current host ports:
-- Port 8000: JBAgent (`JBAGENT_ACCESS` chain, allowlist-gated)
-- Port 8080: albear-t backend (Docker internal; exposed only for infra Caddy)
+- Port 8000: JBAgent (`JBAGENT_ACCESS` chain, allowlist-gated; operator-only)
+- Port 8001: phchess (public — no iptables chain; auth is per-TD JWT at the app layer)
+- Port 8080: albear-t backend (Docker internal; exposed only for infra Caddy; no auth, public read)
 
 ---
 

@@ -16,9 +16,10 @@ dashboard is authoritative.
 | `www` | CNAME | `albeart.xyz` | ✓ Proxied |
 | `agent` | A | `<box-ip>` | ✓ Proxied |
 | `telegram` | A | `<box-ip>` | ✓ Proxied |
+| `chess` | A | `<box-ip>` | ✓ Proxied |
 
 All A records point to the same OCI box IP. When the box IP changes (VM
-migration), update all four records.
+migration), update all five records.
 
 ---
 
@@ -52,6 +53,19 @@ its internal endpoints (relies on this network gate).
 No Access policy — this subdomain is the Telegram webhook endpoint. It
 must be publicly reachable (Telegram's servers need to call it). Protected
 at app layer by HMAC secret-token verification in `transports/telegram.py`.
+
+### chess.albeart.xyz
+
+**No Access policy — intentionally public.** This subdomain serves the
+phchess chess-federation portal. Read paths are public; write paths
+(rating submissions, tournament management) are gated by per-TD JWT
+auth implemented in `phchess/backend/app/auth/`.
+
+Future readers: do **not** add a Cloudflare Access app here. phchess is
+designed as a public site; any visitor can browse player ratings and
+tournament history. The asymmetry with `agent.albeart.xyz` (gated by
+Access) is deliberate — agent is an operator-only UI, chess is a
+public-information portal.
 
 ---
 

@@ -1,0 +1,36 @@
+name: validate
+
+# Lightweight per-PR validation. This repo has no app code, so the gate is:
+#   - shellcheck the firewall script (the only executable in the repo)
+#   - caddy adapt the prod Caddyfile (catches snippet syntax errors)
+# Both run in <30s and mirror what `just validate` does locally.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Shellcheck firewall script
+        run: |
+          # Disabled: SC1091 (sourcing — false positive for files not in repo),
+          # SC2155 (declare-and-assign — common, not a real bug).
+          shellcheck --shell=bash --exclude=SC1091,SC2155 firewall/update-firewall.sh
+
+      - name: Caddy adapt prod config
+        run: |
+          # Same command as `just validate` — catches snippet syntax errors
+          # without needing the TLS certs that only exist on the box.
+          docker run --rm \
+            -v "${{ github.workspace }}/caddy:/caddy" \
+            caddy:alpine \
+            caddy adapt --config /caddy/Caddyfile.prod >/dev/null
