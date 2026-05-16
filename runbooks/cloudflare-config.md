@@ -34,19 +34,47 @@ migration), update all five records.
 
 ## Zero Trust — Access Applications
 
-### agent.albeart.xyz
+### agent.albeart.xyz — two Access apps, path-scoped
+
+The single whole-domain app was split into two on 2026-05-16 so the
+`PublicLanding` + `/demo/*` showcase can be public while operator
+endpoints stay gated. See `docs/2026-05-16-cloudflare-access-path-split.md`
+for the reasoning.
+
+Both apps share the same policy:
 
 - **Application type:** Self-hosted
 - **Session duration:** 30 days
-- **Policies:**
-  - Name: `allow-known-emails`
-  - Action: Allow
-  - Rule: Emails → `[permitted email list]`
-  - Fallback: One-time PIN sent to email
+- **Policy name:** `allow-known-emails`
+- **Action:** Allow
+- **Rule:** Emails → `[permitted email list]`
+- **Fallback:** One-time PIN sent to email
 
-This is the primary gate for the JBAgent UI. Cloudflare enforces auth
-before traffic reaches the box. JBAgent itself has no app-layer auth for
-its internal endpoints (relies on this network gate).
+**App 1 — "JBAgent"** (high-frequency operator UI, 5 hostname rows):
+```
+agent.albeart.xyz/sessions*
+agent.albeart.xyz/files*
+agent.albeart.xyz/traces*
+agent.albeart.xyz/profiles*
+agent.albeart.xyz/config*
+```
+
+**App 2 — "JBAgent — admin paths"** (admin / machine, 3 hostname rows;
+2 free for future Bucket A additions):
+```
+agent.albeart.xyz/run-sync*
+agent.albeart.xyz/evals*
+agent.albeart.xyz/schedules*
+```
+
+Every other path on `agent.albeart.xyz` falls through to the origin:
+`/`, `/health`, `/demo/*`, `/transport/*` (self-authed), and all static
+assets.
+
+**Allowlist update procedure:** edit Include→Emails on App 1's policy,
+save, then repeat on App 2's policy. Drift between the two leaves a gap.
+The server's `Cf-Access-Authenticated-User-Email` middleware (active
+when `JBAGENT_SHOWCASE_ENABLED=true`) is the defense-in-depth safety net.
 
 ### telegram.albeart.xyz
 
