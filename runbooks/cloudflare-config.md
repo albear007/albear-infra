@@ -68,13 +68,27 @@ agent.albeart.xyz/schedules*
 ```
 
 Every other path on `agent.albeart.xyz` falls through to the origin:
-`/`, `/health`, `/demo/*`, `/transport/*` (self-authed), and all static
-assets.
+`/`, `/me`, `/health`, `/demo/*`, `/transport/*` (self-authed), and all
+static assets.
+
+**Pass-through paths and the JWT cookie.** Cloudflare only injects the
+`Cf-Access-Authenticated-User-Email` header on requests routed through
+an Access app. On pass-through paths — most importantly `/me`, which
+the SPA probes on initial load to decide between PublicLanding and the
+operator UI — CF does **not** inject the header even for authenticated
+users. The origin reads the `CF_Authorization` JWT cookie directly and
+validates it against the team's JWKS endpoint instead. Operators must
+set `JBAGENT_CF_ACCESS_TEAM_DOMAIN=<team>.cloudflareaccess.com` on the
+box for showcase mode to work; without it, `/me` 401s even authed
+operators and the SPA stays stuck on the landing. Full reasoning in
+`JBAgent/docs/2026-05-18-cf-access-jwt-cookie-validation.md`.
 
 **Allowlist update procedure:** edit Include→Emails on App 1's policy,
 save, then repeat on App 2's policy. Drift between the two leaves a gap.
 The server's `Cf-Access-Authenticated-User-Email` middleware (active
-when `JBAGENT_SHOWCASE_ENABLED=true`) is the defense-in-depth safety net.
+when `JBAGENT_SHOWCASE_ENABLED=true`) is the defense-in-depth safety
+net on Bucket A paths; the JWT-cookie validation above is the
+counterpart for pass-through paths.
 
 ### telegram.albeart.xyz
 

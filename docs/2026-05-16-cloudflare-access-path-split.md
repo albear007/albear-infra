@@ -5,6 +5,17 @@ description: ADR — split agent.albeart.xyz Cloudflare Access from one whole-do
 
 # Path-scope `agent.albeart.xyz` Cloudflare Access into two apps
 
+**Followed up by:** `JBAgent/docs/2026-05-18-cf-access-jwt-cookie-validation.md`
+— the "App-layer expectations" section below claimed `/me` returns a
+clean JSON 401 from `current_user` and identifies authed operators on
+later requests. That second half was wrong: Cloudflare only injects
+`Cf-Access-Authenticated-User-Email` on Access-app paths, so `/me`
+returned 401 even to authed users and the SPA stayed stuck on the
+public landing. The follow-up ADR records the fix (validate the
+`CF_Authorization` JWT cookie at the origin against the team's JWKS).
+The path-split decision below stands; only the App-layer expectation
+narrative is superseded.
+
 **Date:** 2026-05-16
 **Status:** Accepted
 
