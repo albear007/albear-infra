@@ -31,6 +31,22 @@ validate:
     @docker run --rm -v "$PWD/caddy:/caddy" caddy:alpine caddy adapt --config /caddy/Caddyfile.prod >/dev/null \
         && echo "Caddyfile.prod syntax OK"
 
+# Full pre-deploy check. Run before `just deploy-gateway` or
+# `just update-firewall` — catches the bad-config classes that have
+# historically locked the operator out of production:
+#   1. Caddyfile + every snippet parses (caddy adapt)
+#   2. Every `import` in Caddyfile.prod resolves to a real file
+#   3. firewall/allowed-ips is well-formed (every line is a valid IP/CIDR)
+#   4. firewall/update-firewall.sh passes shellcheck
+#   5. Update-firewall's --dry-run output matches the snapshot
+#   6. The validators themselves reject known-bad input
+test:
+    bash tests/validate_caddy.sh
+    python3 tests/validate_allowed_ips.py
+    bash tests/validate_firewall_script.sh
+    bash tests/dry_run_firewall.sh
+    bash tests/test_validators.sh
+
 # Restart (not reload) is required — reload silently no-ops in this
 # environment. See docs/2026-04-30-foundation.md decision 7.
 #

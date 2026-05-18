@@ -1,0 +1,6 @@
+# Sample allowed-ips fixture used by tests/dry_run_firewall.sh and
+# tests/test_validate_allowed_ips_*.txt. Don't add real production IPs here.
+
+10.0.0.1/32  # bastion (test)
+192.168.1.0/24  # office network (test)
+203.0.113.7/32  # docs example (test)
