@@ -145,6 +145,33 @@ two free rows. Future Bucket A additions live in App 2 until it
 saturates, at which point a third app or the paid-plan upgrade is
 forced.
 
+## App-layer expectations
+
+This ADR puts `/config*` and `/sessions*` behind App 1. Both paths
+return a cross-origin 302 to `albear.cloudflareaccess.com` for any
+request without a valid CF Access JWT cookie — a redirect the browser
+CORS-blocks as `TypeError: Failed to fetch` when a SPA hits the path
+from anonymous JavaScript.
+
+The JBAgent SPA therefore uses **`/me`** (not `/config`) as its
+anonymous auth probe on initial load. `/me` is outside both apps and
+outside `_BUCKET_A_PREFIXES` (`JBAgent/server.py`), so it returns a
+clean JSON 401 from the app's `current_user` dependency via Caddy —
+which the SPA can interpret and use to render the public landing.
+Only after `/me` confirms operator state does the SPA fetch
+`/config` (the CF cookie auths through App 1 on the second hop).
+
+See the JBAgent fix that wired this up:
+`https://github.com/albear007/jbagent/pull/68`.
+
+**Reviewer rule for future Bucket-A additions:** if the new endpoint
+is on the SPA's anonymous-load critical path, it must either (a) stay
+out of App 1 / App 2 and rely on the app-layer middleware, or (b)
+land alongside an SPA change that adds an `/me`-style anonymous probe
+to detect operator state before touching it. The "silently public if
+forgotten" trap (recorded under § Tradeoffs) is the dual of this
+trap: the "anonymous-broken if added to App 1 unannounced" trap.
+
 ## Operational notes
 
 **Update procedure** when the operator allowlist changes:
